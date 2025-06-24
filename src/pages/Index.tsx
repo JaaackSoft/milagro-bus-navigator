@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bus, Route, MapPin, Clock, AlertTriangle } from "lucide-react";
+import { Bus, Route, MapPin, Clock, AlertTriangle, Plus } from "lucide-react";
 import RouteSelector from "@/components/RouteSelector";
 import RouteMap from "@/components/RouteMap";
 import BlockedStreets from "@/components/BlockedStreets";
@@ -50,7 +50,7 @@ const Index = () => {
             </Card>
 
             {/* Time Estimate */}
-            {estimatedTime && (
+            {estimatedTime && selectedRoute && (
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
                 <CardHeader className="bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
@@ -59,11 +59,47 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      {estimatedTime} min
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 mb-1">
+                        {estimatedTime} min
+                      </div>
+                      <p className="text-gray-600 text-sm">Duración aproximada del viaje</p>
                     </div>
-                    <p className="text-gray-600">Duración aproximada del viaje</p>
+                    
+                    {selectedRoute.isAlternative && (
+                      <div className="bg-orange-50 border-l-4 border-orange-400 p-3 rounded">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-orange-600" />
+                          <span className="font-semibold text-orange-800 text-sm">Ruta Alternativa</span>
+                        </div>
+                        <div className="space-y-1 text-xs text-orange-700">
+                          <div className="flex justify-between">
+                            <span>Tiempo normal:</span>
+                            <span>{selectedRoute.normalTime} min</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Tiempo adicional:</span>
+                            <span className="flex items-center gap-1">
+                              <Plus className="h-3 w-3" />
+                              {selectedRoute.additionalTime} min
+                            </span>
+                          </div>
+                          <div className="flex justify-between font-semibold border-t pt-1">
+                            <span>Total:</span>
+                            <span>{selectedRoute.estimatedTime} min</span>
+                          </div>
+                        </div>
+                        {selectedRoute.blockedStreetsInRoute && selectedRoute.blockedStreetsInRoute.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-orange-200">
+                            <p className="text-xs text-orange-700">
+                              <strong>Calles bloqueadas en ruta:</strong><br />
+                              {selectedRoute.blockedStreetsInRoute.join(", ")}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

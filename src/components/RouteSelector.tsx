@@ -70,21 +70,33 @@ const RouteSelector = ({ onRouteSelect, blockedStreets, onTimeEstimate }: RouteS
       return;
     }
 
-    // Check if any streets in the route are blocked
-    const blockedInRoute = routeData.streets.some(street => blockedStreets.includes(street));
+    // Calcular el impacto de las calles bloqueadas
+    const blockedStreetsInRoute = routeData.streets.filter(street => blockedStreets.includes(street));
     let finalTime = routeData.normalTime;
     let alternativeRoute = false;
+    let timeDetails = [];
 
-    if (blockedInRoute) {
-      // Add extra time for alternative route
-      finalTime = Math.round(routeData.normalTime * 1.5);
+    if (blockedStreetsInRoute.length > 0) {
+      // Tiempo base de la ruta original
+      timeDetails.push(`Tiempo base: ${routeData.normalTime} min`);
+      
+      // Calcular tiempo adicional por cada calle bloqueada
+      const additionalTimePerStreet = Math.round(routeData.normalTime * 0.4); // 40% más por cada calle bloqueada
+      const totalAdditionalTime = blockedStreetsInRoute.length * additionalTimePerStreet;
+      
+      finalTime = routeData.normalTime + totalAdditionalTime;
       alternativeRoute = true;
       
+      timeDetails.push(`Tiempo adicional por ${blockedStreetsInRoute.length} calle(s) bloqueada(s): +${totalAdditionalTime} min`);
+      timeDetails.push(`Tiempo total estimado: ${finalTime} min`);
+      
       toast({
-        title: "Ruta alternativa",
-        description: "Se ha encontrado una ruta alternativa debido a calles bloqueadas",
+        title: "Ruta alternativa necesaria",
+        description: `Calles bloqueadas: ${blockedStreetsInRoute.join(", ")}. Tiempo adicional: +${totalAdditionalTime} min`,
         variant: "default"
       });
+    } else {
+      timeDetails.push(`Ruta directa disponible: ${finalTime} min`);
     }
 
     const route = {
@@ -92,16 +104,22 @@ const RouteSelector = ({ onRouteSelect, blockedStreets, onTimeEstimate }: RouteS
       destination: busStops.find(stop => stop.id === destination),
       distance: routeData.distance,
       estimatedTime: finalTime,
+      normalTime: routeData.normalTime,
+      additionalTime: finalTime - routeData.normalTime,
       streets: routeData.streets,
-      isAlternative: alternativeRoute
+      blockedStreetsInRoute,
+      isAlternative: alternativeRoute,
+      timeDetails
     };
 
     onRouteSelect(route);
     onTimeEstimate(finalTime);
 
+    console.log("Detalles del cálculo:", timeDetails);
+
     toast({
       title: "Ruta calculada",
-      description: `Tiempo estimado: ${finalTime} minutos`,
+      description: `${alternativeRoute ? 'Ruta alternativa' : 'Ruta directa'}: ${finalTime} minutos`,
     });
   };
 
